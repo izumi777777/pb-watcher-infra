@@ -32,8 +32,8 @@ resource "aws_security_group_rule" "egress_all" {
 # インバウンドルール (例: HTTP)
 resource "aws_security_group_rule" "ingress_app" {
   type              = "ingress"
-  from_port         = 80
-  to_port           = 80
+  from_port         = 8080
+  to_port           = 8080
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"] # あなたの現在のグローバルIP
   security_group_id = aws_security_group.this.id

@@ -98,7 +98,6 @@ module "external_api_secrets" {
     AZURE_CLIENT_SECRET    = "REPLACE_ME"
     AZURE_PROJECT_ENDPOINT = "https://your-project.azure.com"
     AGENT_ID               = "REPLACE_ME"
-    GEMINI_API_KEY         = "REPLACE_ME"
 
     # --- 追加: Firebase フロントエンド用キー ---
     FIREBASE_API_KEY             = "REPLACE_ME"
@@ -107,10 +106,11 @@ module "external_api_secrets" {
     FIREBASE_STORAGE_BUCKET      = "pb-watcher-app.firebasestorage.app"
     FIREBASE_MESSAGING_SENDER_ID = "400651520598"
     FIREBASE_APP_ID              = "1:400651520598:web:99f06bb3e2a74c577589f7"
-    FIREBASE_SERVICE_ACCOUNT_JSON = "dummy"
+
     
     # LINEやApp IDなどバックエンド用
     LINE_CHANNEL_ACCESS_TOKEN    = "REPLACE_ME"
+    LINE_CHANNEL_SECRET="Dummy"
     APP_ID                       = "pb-stock-monitor-pro"
   }
 }
@@ -146,19 +146,19 @@ resource "aws_iam_role_policy" "apprunner_combined_secrets_policy" {
 # ========================================================================
 #  App Runnerモジュールの呼び出し 
 # ========================================================================
-# module "app_runner" {
-#   source          = "../../03_modules/app_runner"
-#   service_name    = "dev-myapp-runner"
-#   repository_url  = module.app_ecr.repository_url
-#   access_role_arn = module.iam.apprunner_access_role_arn
-#   # access_role_arn = module.iam.apprunner_access_role_name
-#   instance_role_arn = module.iam.apprunner_instance_role_arn
-#   secret_arn        = module.external_api_secrets.secret_arn
-# }
+module "app_runner" {
+  source          = "../../03_modules/app_runner"
+  service_name    = "dev-myapp-runner"
+  repository_url  = module.app_ecr.repository_url
+  access_role_arn = module.iam.apprunner_access_role_arn
+  # access_role_arn = module.iam.apprunner_access_role_name
+  instance_role_arn = module.iam.apprunner_instance_role_arn
+  secret_arn        = module.external_api_secrets.secret_arn
+}
 
-# output "apprunner_url" {
-#   value = module.app_runner.service_url
-# }
+output "apprunner_url" {
+  value = module.app_runner.service_url
+}
 
 
 # ------------------------------------------------------------------
