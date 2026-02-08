@@ -146,19 +146,19 @@ resource "aws_iam_role_policy" "apprunner_combined_secrets_policy" {
 # ========================================================================
 #  App Runnerモジュールの呼び出し 
 # ========================================================================
-module "app_runner" {
-  source          = "../../03_modules/app_runner"
-  service_name    = "dev-myapp-runner"
-  repository_url  = module.app_ecr.repository_url
-  access_role_arn = module.iam.apprunner_access_role_arn
-  # access_role_arn = module.iam.apprunner_access_role_name
-  instance_role_arn = module.iam.apprunner_instance_role_arn
-  secret_arn        = module.external_api_secrets.secret_arn
-}
+# module "app_runner" {
+#   source          = "../../03_modules/app_runner"
+#   service_name    = "dev-myapp-runner"
+#   repository_url  = module.app_ecr.repository_url
+#   access_role_arn = module.iam.apprunner_access_role_arn
+#   # access_role_arn = module.iam.apprunner_access_role_name
+#   instance_role_arn = module.iam.apprunner_instance_role_arn
+#   secret_arn        = module.external_api_secrets.secret_arn
+# }
 
-output "apprunner_url" {
-  value = module.app_runner.service_url
-}
+# output "apprunner_url" {
+#   value = module.app_runner.service_url
+# }
 
 
 # ------------------------------------------------------------------
