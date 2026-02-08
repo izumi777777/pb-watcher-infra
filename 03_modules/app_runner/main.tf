@@ -15,6 +15,19 @@ resource "aws_apprunner_service" "this" {
           "AZURE_PROJECT_ENDPOINT" = "${var.secret_arn}:AZURE_PROJECT_ENDPOINT::"
           "AGENT_ID"               = "${var.secret_arn}:AGENT_ID::"
           "GEMINI_API_KEY"         = "${var.secret_arn}:GEMINI_API_KEY::"
+
+          # --- 追加分 ---
+          "FIREBASE_API_KEY"             = "${var.secret_arn}:FIREBASE_API_KEY::"
+          "FIREBASE_AUTH_DOMAIN"         = "${var.secret_arn}:FIREBASE_AUTH_DOMAIN::"
+          "FIREBASE_PROJECT_ID"          = "${var.secret_arn}:FIREBASE_PROJECT_ID::"
+          "FIREBASE_STORAGE_BUCKET"      = "${var.secret_arn}:FIREBASE_STORAGE_BUCKET::"
+          "FIREBASE_MESSAGING_SENDER_ID" = "${var.secret_arn}:FIREBASE_MESSAGING_SENDER_ID::"
+          "FIREBASE_APP_ID"              = "${var.secret_arn}:FIREBASE_APP_ID::"
+          "LINE_CHANNEL_ACCESS_TOKEN"    = "${var.secret_arn}:LINE_CHANNEL_ACCESS_TOKEN::"
+          "APP_ID"                       = "${var.secret_arn}:APP_ID::"
+
+          # Firebase Admin SDK用のJSON（中身を文字列として保存する場合）
+          "FIREBASE_SERVICE_ACCOUNT_JSON" = "${var.secret_arn}:FIREBASE_SERVICE_ACCOUNT_JSON::"
         }
       }
     }

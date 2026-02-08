@@ -99,6 +99,19 @@ module "external_api_secrets" {
     AZURE_PROJECT_ENDPOINT = "https://your-project.azure.com"
     AGENT_ID               = "REPLACE_ME"
     GEMINI_API_KEY         = "REPLACE_ME"
+
+    # --- 追加: Firebase フロントエンド用キー ---
+    FIREBASE_API_KEY             = "REPLACE_ME"
+    FIREBASE_AUTH_DOMAIN         = "pb-watcher-app.firebaseapp.com"
+    FIREBASE_PROJECT_ID          = "pb-watcher-app"
+    FIREBASE_STORAGE_BUCKET      = "pb-watcher-app.firebasestorage.app"
+    FIREBASE_MESSAGING_SENDER_ID = "400651520598"
+    FIREBASE_APP_ID              = "1:400651520598:web:99f06bb3e2a74c577589f7"
+    FIREBASE_SERVICE_ACCOUNT_JSON = "dummy"
+    
+    # LINEやApp IDなどバックエンド用
+    LINE_CHANNEL_ACCESS_TOKEN    = "REPLACE_ME"
+    APP_ID                       = "pb-stock-monitor-pro"
   }
 }
 
