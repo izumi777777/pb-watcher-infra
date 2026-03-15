@@ -143,21 +143,110 @@ resource "aws_iam_role_policy" "apprunner_combined_secrets_policy" {
   })
 }
 
-# ========================================================================
-#  App Runnerモジュールの呼び出し 
-# ========================================================================
-module "app_runner" {
-  source          = "../../03_modules/app_runner"
-  service_name    = "dev-myapp-runner"
-  repository_url  = module.app_ecr.repository_url
-  access_role_arn = module.iam.apprunner_access_role_arn
-  # access_role_arn = module.iam.apprunner_access_role_name
+# =========================================================================
+# App Runner（家計簿アプリ用）※既存モジュールとは別モジュールを使用
+# =========================================================================
+module "kakeibo_app_runner" {
+  source            = "../../03_modules/app_runner_kakeibo"
+  service_name      = "dev-kakeibo-runner"
+  repository_url    = module.kakeibo_ecr.repository_url
+  access_role_arn   = module.iam.apprunner_access_role_arn
   instance_role_arn = module.iam.apprunner_instance_role_arn
-  secret_arn        = module.external_api_secrets.secret_arn
+  secret_arn        = module.kakeibo_secrets.secret_arn
+
+  environment_secrets = {
+    FIREBASE_API_KEY             = "${module.kakeibo_secrets.secret_arn}:FIREBASE_API_KEY::"
+    FIREBASE_AUTH_DOMAIN         = "${module.kakeibo_secrets.secret_arn}:FIREBASE_AUTH_DOMAIN::"
+    FIREBASE_PROJECT_ID          = "${module.kakeibo_secrets.secret_arn}:FIREBASE_PROJECT_ID::"
+    FIREBASE_STORAGE_BUCKET      = "${module.kakeibo_secrets.secret_arn}:FIREBASE_STORAGE_BUCKET::"
+    FIREBASE_MESSAGING_SENDER_ID = "${module.kakeibo_secrets.secret_arn}:FIREBASE_MESSAGING_SENDER_ID::"
+    FIREBASE_APP_ID              = "${module.kakeibo_secrets.secret_arn}:FIREBASE_APP_ID::"
+    SECRET_KEY                   = "${module.kakeibo_secrets.secret_arn}:SECRET_KEY::"
+  }
 }
 
-output "apprunner_url" {
-  value = module.app_runner.service_url
+output "kakeibo_apprunner_url" {
+  value = module.kakeibo_app_runner.service_url
+}
+
+
+# 家計簿アプリ用
+
+# =========================================================================
+# ECR Repository（家計簿アプリ用）
+# =========================================================================
+module "kakeibo_ecr" {
+  source          = "../../03_modules/ecr"
+  repository_name = "dev-kakeibo-app-repo"
+
+  untagged_image_count = 3
+}
+
+# =========================================================================
+# Secrets Manager（家計簿アプリ用）
+# =========================================================================
+module "kakeibo_secrets" {
+  source      = "../../03_modules/secrets_manager"
+  secret_name = "dev/kakeibo/app-keys"
+  description = "App keys for Kakeibo App Runner"
+
+  rotation_days       = 30
+  rotation_lambda_arn = null
+
+  initial_secret_values = {
+    FIREBASE_API_KEY             = "REPLACE_ME"
+    FIREBASE_AUTH_DOMAIN         = "REPLACE_ME"
+    FIREBASE_PROJECT_ID          = "REPLACE_ME"
+    FIREBASE_STORAGE_BUCKET      = "REPLACE_ME"
+    FIREBASE_MESSAGING_SENDER_ID = "REPLACE_ME"
+    FIREBASE_APP_ID              = "REPLACE_ME"
+    SECRET_KEY                   = "REPLACE_ME"  # Flask用セッションキー
+  }
+}
+
+# =========================================================================
+# Secrets Managerアクセス権限（家計簿アプリ用）
+# =========================================================================
+resource "aws_iam_role_policy" "kakeibo_secrets_policy" {
+  for_each = toset([
+    module.iam.apprunner_access_role_name,
+    module.iam.apprunner_instance_role_name
+  ])
+
+  name = "kakeibo-secrets-policy-${each.key}"
+  role = each.value
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "secretsmanager:GetSecretValue"
+        Resource = [module.kakeibo_secrets.secret_arn]
+      },
+      {
+        Effect   = "Allow"
+        Action   = "kms:Decrypt"
+        Resource = ["*"]
+      }
+    ]
+  })
+}
+
+# =========================================================================
+# App Runner（家計簿アプリ用）
+# =========================================================================
+module "kakeibo_app_runner" {
+  source            = "../../03_modules/app_runner"
+  service_name      = "dev-kakeibo-runner"
+  repository_url    = module.kakeibo_ecr.repository_url
+  access_role_arn   = module.iam.apprunner_access_role_arn
+  instance_role_arn = module.iam.apprunner_instance_role_arn
+  secret_arn        = module.kakeibo_secrets.secret_arn
+}
+
+output "kakeibo_apprunner_url" {
+  value = module.kakeibo_app_runner.service_url
 }
 
 
