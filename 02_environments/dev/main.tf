@@ -143,6 +143,23 @@ resource "aws_iam_role_policy" "apprunner_combined_secrets_policy" {
   })
 }
 
+# ========================================================================
+#  App Runnerモジュールの呼び出し 
+# ========================================================================
+module "app_runner" {
+  source          = "../../03_modules/app_runner"
+  service_name    = "dev-myapp-runner"
+  repository_url  = module.app_ecr.repository_url
+  access_role_arn = module.iam.apprunner_access_role_arn
+  # access_role_arn = module.iam.apprunner_access_role_name
+  instance_role_arn = module.iam.apprunner_instance_role_arn
+  secret_arn        = module.external_api_secrets.secret_arn
+}
+
+output "apprunner_url" {
+  value = module.app_runner.service_url
+}
+
 # =========================================================================
 # App Runner（家計簿アプリ用）※既存モジュールとは別モジュールを使用
 # =========================================================================
@@ -231,22 +248,6 @@ resource "aws_iam_role_policy" "kakeibo_secrets_policy" {
       }
     ]
   })
-}
-
-# =========================================================================
-# App Runner（家計簿アプリ用）
-# =========================================================================
-module "kakeibo_app_runner" {
-  source            = "../../03_modules/app_runner"
-  service_name      = "dev-kakeibo-runner"
-  repository_url    = module.kakeibo_ecr.repository_url
-  access_role_arn   = module.iam.apprunner_access_role_arn
-  instance_role_arn = module.iam.apprunner_instance_role_arn
-  secret_arn        = module.kakeibo_secrets.secret_arn
-}
-
-output "kakeibo_apprunner_url" {
-  value = module.kakeibo_app_runner.service_url
 }
 
 
