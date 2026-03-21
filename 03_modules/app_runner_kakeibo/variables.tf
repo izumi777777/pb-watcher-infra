@@ -35,3 +35,11 @@ variable "environment_secrets" {
   type        = map(string)
   default     = {}
 }
+
+# 03_modules/app_runner_kakeibo/variables.tf に追記
+
+variable "environment_variables" {
+  description = "コンテナに渡す通常の環境変数のマップ"
+  type        = map(string)
+  default     = {}
+}

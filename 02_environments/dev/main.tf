@@ -281,6 +281,90 @@ resource "aws_iam_role_policy" "kakeibo_secrets_policy" {
 }
 
 
+# =========================================================================
+# Secrets Manager（Threads投稿管理アプリ用）
+# =========================================================================
+module "threads_secrets" {
+  source      = "../../03_modules/secrets_manager"
+  secret_name = "dev/threads/app-keys"
+  description = "App keys for Threads Management App Runner"
+
+  rotation_days       = 30
+  rotation_lambda_arn = null
+
+   environment_variables = {
+    GOOGLE_APPLICATION_CREDENTIALS = "/app/services.json"
+  }
+
+  initial_secret_values = {
+    SECRET_KEY               = "REPLACE_ME_WITH_RANDOM_STRING"
+    AZURE_OPENAI_API_KEY     = "REPLACE_ME"
+    AZURE_OPENAI_ENDPOINT    = "https://REPLACE_ME.openai.azure.com/"
+    AZURE_OPENAI_DEPLOYMENT  = "test-ms-gpt4o-structure"
+    AZURE_OPENAI_API_VERSION = "2024-12-01-preview"
+    # その他必要なキー（LINE等）があればここに追加してください
+  }
+}
+
+# =========================================================================
+# Secrets Managerアクセス権限（Threads投稿管理アプリ用）
+# =========================================================================
+resource "aws_iam_role_policy" "threads_secrets_policy" {
+  for_each = toset([
+    module.iam.apprunner_access_role_name,
+    module.iam.apprunner_instance_role_name
+  ])
+
+  name = "threads-secrets-policy-${each.key}"
+  role = each.value
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "secretsmanager:GetSecretValue"
+        Resource = [module.threads_secrets.secret_arn]
+      },
+      {
+        Effect   = "Allow"
+        Action   = "kms:Decrypt"
+        Resource = ["*"]
+      }
+    ]
+  })
+}
+
+# =========================================================================
+# App Runner（Threads投稿管理アプリ用）
+# =========================================================================
+module "threads_app_runner" {
+  source            = "../../03_modules/app_runner_kakeibo" # 既存の汎用モジュールを利用
+  service_name      = "dev-threads-runner"
+  repository_url    = module.additional_ecr_3.repository_url # 以前作成したリポジトリを参照
+  access_role_arn   = module.iam.apprunner_access_role_arn
+  instance_role_arn = module.iam.apprunner_instance_role_arn
+  secret_arn        = module.threads_secrets.secret_arn
+
+  environment_variables = {
+    # コンテナ内のパスを指定
+    GOOGLE_APPLICATION_CREDENTIALS = "/app/services.json"
+    PORT                           = "8080"
+  }
+
+  environment_secrets = {
+    SECRET_KEY                = "${module.threads_secrets.secret_arn}:SECRET_KEY::"
+    AZURE_OPENAI_API_KEY      = "${module.threads_secrets.secret_arn}:AZURE_OPENAI_API_KEY::"
+    AZURE_OPENAI_ENDPOINT     = "${module.threads_secrets.secret_arn}:AZURE_OPENAI_ENDPOINT::"
+    AZURE_OPENAI_DEPLOYMENT   = "${module.threads_secrets.secret_arn}:AZURE_OPENAI_DEPLOYMENT::"
+    AZURE_OPENAI_API_VERSION  = "${module.threads_secrets.secret_arn}:AZURE_OPENAI_API_VERSION::"
+  }
+}
+
+output "threads_apprunner_url" {
+  value = module.threads_app_runner.service_url
+}
+
 # ------------------------------------------------------------------
 # S3 CRR用設定
 # -------------------------------------------------------------------
