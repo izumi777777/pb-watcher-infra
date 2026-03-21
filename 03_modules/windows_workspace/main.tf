@@ -54,4 +54,10 @@ resource "aws_instance" "windows_workspace" {
   tags = {
     Name = "windows-workspace"
   }
+
+  lifecycle {
+    ignore_changes = [
+      ami, # AMIが更新されても置換（再作成）しない
+    ]
+  }
 }

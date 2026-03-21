@@ -99,7 +99,7 @@ module "kakeibo_ecr" {
 # Threads投稿管理アプリ
 module "additional_ecr_3" {
   source          = "../../03_modules/ecr"
-  repository_name = "dev-ThreadsManagement-app-repo" 
+  repository_name = "dev-threads-management-app-repo" # ← T と M を小文字にする！
 
   untagged_image_count = 3
 }
@@ -188,45 +188,45 @@ resource "aws_iam_role_policy" "apprunner_combined_secrets_policy" {
 # ========================================================================
 #  App Runnerモジュールの呼び出し 
 # ========================================================================
-module "app_runner" {
-  source          = "../../03_modules/app_runner"
-  service_name    = "dev-myapp-runner"
-  repository_url  = module.app_ecr.repository_url
-  access_role_arn = module.iam.apprunner_access_role_arn
-  # access_role_arn = module.iam.apprunner_access_role_name
-  instance_role_arn = module.iam.apprunner_instance_role_arn
-  secret_arn        = module.external_api_secrets.secret_arn
-}
+# module "app_runner" {
+#   source          = "../../03_modules/app_runner"
+#   service_name    = "dev-myapp-runner"
+#   repository_url  = module.app_ecr.repository_url
+#   access_role_arn = module.iam.apprunner_access_role_arn
+#   # access_role_arn = module.iam.apprunner_access_role_name
+#   instance_role_arn = module.iam.apprunner_instance_role_arn
+#   secret_arn        = module.external_api_secrets.secret_arn
+# }
 
-output "apprunner_url" {
-  value = module.app_runner.service_url
-}
+# output "apprunner_url" {
+#   value = module.app_runner.service_url
+# }
 
 # =========================================================================
 # App Runner（家計簿アプリ用）※既存モジュールとは別モジュールを使用
 # =========================================================================
-module "kakeibo_app_runner" {
-  source            = "../../03_modules/app_runner_kakeibo"
-  service_name      = "dev-kakeibo-runner"
-  repository_url    = module.kakeibo_ecr.repository_url
-  access_role_arn   = module.iam.apprunner_access_role_arn
-  instance_role_arn = module.iam.apprunner_instance_role_arn
-  secret_arn        = module.kakeibo_secrets.secret_arn
+# module "kakeibo_app_runner" {
+#   source            = "../../03_modules/app_runner_kakeibo"
+#   service_name      = "dev-kakeibo-runner"
+#   repository_url    = module.kakeibo_ecr.repository_url
+#   access_role_arn   = module.iam.apprunner_access_role_arn
+#   instance_role_arn = module.iam.apprunner_instance_role_arn
+#   secret_arn        = module.kakeibo_secrets.secret_arn
 
-  environment_secrets = {
-    FIREBASE_API_KEY             = "${module.kakeibo_secrets.secret_arn}:FIREBASE_API_KEY::"
-    FIREBASE_AUTH_DOMAIN         = "${module.kakeibo_secrets.secret_arn}:FIREBASE_AUTH_DOMAIN::"
-    FIREBASE_PROJECT_ID          = "${module.kakeibo_secrets.secret_arn}:FIREBASE_PROJECT_ID::"
-    FIREBASE_STORAGE_BUCKET      = "${module.kakeibo_secrets.secret_arn}:FIREBASE_STORAGE_BUCKET::"
-    FIREBASE_MESSAGING_SENDER_ID = "${module.kakeibo_secrets.secret_arn}:FIREBASE_MESSAGING_SENDER_ID::"
-    FIREBASE_APP_ID              = "${module.kakeibo_secrets.secret_arn}:FIREBASE_APP_ID::"
-    SECRET_KEY                   = "${module.kakeibo_secrets.secret_arn}:SECRET_KEY::"
-  }
-}
+#   environment_secrets = {
+#     FIREBASE_API_KEY             = "${module.kakeibo_secrets.secret_arn}:FIREBASE_API_KEY::"
+#     FIREBASE_AUTH_DOMAIN         = "${module.kakeibo_secrets.secret_arn}:FIREBASE_AUTH_DOMAIN::"
+#     FIREBASE_PROJECT_ID          = "${module.kakeibo_secrets.secret_arn}:FIREBASE_PROJECT_ID::"
+#     FIREBASE_STORAGE_BUCKET      = "${module.kakeibo_secrets.secret_arn}:FIREBASE_STORAGE_BUCKET::"
+#     FIREBASE_MESSAGING_SENDER_ID = "${module.kakeibo_secrets.secret_arn}:FIREBASE_MESSAGING_SENDER_ID::"
+#     FIREBASE_APP_ID              = "${module.kakeibo_secrets.secret_arn}:FIREBASE_APP_ID::"
+#     SECRET_KEY                   = "${module.kakeibo_secrets.secret_arn}:SECRET_KEY::"
+#   }
+# }
 
-output "kakeibo_apprunner_url" {
-  value = module.kakeibo_app_runner.service_url
-}
+# output "kakeibo_apprunner_url" {
+#   value = module.kakeibo_app_runner.service_url
+# }
 
 
 
