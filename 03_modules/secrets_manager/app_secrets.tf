@@ -11,9 +11,9 @@ resource "aws_secretsmanager_secret_version" "app_env" {
   secret_string = jsonencode(var.initial_secret_values)
 
   # 手動で更新した値をTerraformが上書きするのを防ぐ
-  lifecycle {
-    ignore_changes = [secret_string]
-  }
+  # lifecycle {
+  #   ignore_changes = [secret_string]
+  # }
 }
 
 # ローテーション設定（値が渡されている場合のみ有効化）

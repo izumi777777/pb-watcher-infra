@@ -213,14 +213,16 @@ module "kakeibo_app_runner" {
   instance_role_arn = module.iam.apprunner_instance_role_arn
   secret_arn        = module.kakeibo_secrets.secret_arn
 
+  environment_variables = {
+    GOOGLE_APPLICATION_CREDENTIALS = "/app/firebase-key.json"
+  }
+
   environment_secrets = {
-    FIREBASE_API_KEY             = "${module.kakeibo_secrets.secret_arn}:FIREBASE_API_KEY::"
-    FIREBASE_AUTH_DOMAIN         = "${module.kakeibo_secrets.secret_arn}:FIREBASE_AUTH_DOMAIN::"
-    FIREBASE_PROJECT_ID          = "${module.kakeibo_secrets.secret_arn}:FIREBASE_PROJECT_ID::"
-    FIREBASE_STORAGE_BUCKET      = "${module.kakeibo_secrets.secret_arn}:FIREBASE_STORAGE_BUCKET::"
-    FIREBASE_MESSAGING_SENDER_ID = "${module.kakeibo_secrets.secret_arn}:FIREBASE_MESSAGING_SENDER_ID::"
-    FIREBASE_APP_ID              = "${module.kakeibo_secrets.secret_arn}:FIREBASE_APP_ID::"
-    SECRET_KEY                   = "${module.kakeibo_secrets.secret_arn}:SECRET_KEY::"
+    SECRET_KEY                = "${module.kakeibo_secrets.secret_arn}:SECRET_KEY::"
+    AZURE_OPENAI_API_KEY      = "${module.kakeibo_secrets.secret_arn}:AZURE_OPENAI_API_KEY::"
+    AZURE_OPENAI_ENDPOINT     = "${module.kakeibo_secrets.secret_arn}:AZURE_OPENAI_ENDPOINT::"
+    AZURE_OPENAI_DEPLOYMENT   = "${module.kakeibo_secrets.secret_arn}:AZURE_OPENAI_DEPLOYMENT::"
+    AZURE_OPENAI_API_VERSION  = "${module.kakeibo_secrets.secret_arn}:AZURE_OPENAI_API_VERSION::"
   }
 }
 
@@ -241,13 +243,11 @@ module "kakeibo_secrets" {
   rotation_lambda_arn = null
 
   initial_secret_values = {
-    FIREBASE_API_KEY             = "REPLACE_ME"
-    FIREBASE_AUTH_DOMAIN         = "REPLACE_ME"
-    FIREBASE_PROJECT_ID          = "REPLACE_ME"
-    FIREBASE_STORAGE_BUCKET      = "REPLACE_ME"
-    FIREBASE_MESSAGING_SENDER_ID = "REPLACE_ME"
-    FIREBASE_APP_ID              = "REPLACE_ME"
-    SECRET_KEY                   = "REPLACE_ME"  # Flask用セッションキー
+    SECRET_KEY               = "REPLACE_ME_with_random_string"
+    AZURE_OPENAI_API_KEY     = "REPLACE_ME"
+    AZURE_OPENAI_ENDPOINT    = "https://REPLACE_ME.openai.azure.com/"
+    AZURE_OPENAI_DEPLOYMENT  = "test-ms-gpt4o-structure"
+    AZURE_OPENAI_API_VERSION = "2024-12-01-preview"
   }
 }
 
