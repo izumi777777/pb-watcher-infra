@@ -20,18 +20,18 @@ module "web_sg" {
 
 
 # ======================================================================
-# EC2用IAM
+# EC2 および App Runner用 IAM
 # ======================================================================
-# module "iam" {
-#   source = "../../03_modules/iam"
-#   # secret_arn = module.external_api_secrets.secret_arn
-# }
-
 module "iam" {
   source      = "../../03_modules/iam"
-  secret_arn  = "arn:aws:secretsmanager:ap-northeast-1:811330714771:secret:example"
-  bucket_name = "my-unique-app-tfstate-bucket"
+  
+  # 動的に作成される本番用シークレットのARNを参照する（こちらが推奨です）
+  secret_arn  = module.external_api_secrets.secret_arn
+  
+  # もしiamモジュール側で bucket_name の指定が必須な場合は残してください
+  bucket_name = "my-unique-app-tfstate-bucket" 
 }
+
 
 # ======================================================================
 # EC2モジュールの呼び出し
@@ -45,14 +45,39 @@ module "my_ec2" {
   project_name      = "my-app"
   env               = "dev"
 
-  # 新規作成したインスタンスプロファイルを既存のEC2に紐付け
+#   # 新規作成したインスタンスプロファイルを既存のEC2に紐付け
   iam_instance_profile = module.iam.ec2_instance_profile_name
 
 }
 
 # =========================================================================
+# 作業用 Windows EC2 環境モジュールの呼び出し
+# =========================================================================
+module "windows_workspace" {
+  source       = "../../03_modules/windows_workspace"
+  
+  # モジュールに渡すパラメータ
+  project_name = "my-app"
+  env          = "dev"
+  vpc_id       = module.vpc.vpc_id
+  subnet_id    = module.vpc.public_subnet_1a_id
+  key_name     = "terraform_keypair" # 既存のキーペア名
+  
+  # 【重要】ご自身のグローバルIPアドレスをここに記述します
+  my_global_ip = var.my_global_ip # ← 実際のIPアドレスに書き換えてください（/32は不要です）
+}
+
+# ルートから接続用IPアドレスを出力
+output "windows_public_ip" {
+  value       = module.windows_workspace.public_ip
+  description = "WindowsマシンのパブリックIPアドレス（リモートデスクトップの接続先）"
+}
+
+
+# =========================================================================
 # ECR Repository (App Runner 用のイメージを格納)
 # =========================================================================
+# ヤフオク/Amazonリサーチアプリ
 module "app_ecr" {
   source          = "../../03_modules/ecr"
   repository_name = "dev-myapp-app-repo"
@@ -61,6 +86,23 @@ module "app_ecr" {
   untagged_image_count = 3
 }
 
+# 2つ目の追加リポジトリ
+# 家計簿アプリ用
+module "kakeibo_ecr" {
+  source          = "../../03_modules/ecr"
+  repository_name = "dev-kakeibo-app-repo"
+
+  untagged_image_count = 3
+}
+
+# 3つ目の追加リポジトリ
+# Threads投稿管理アプリ
+module "additional_ecr_3" {
+  source          = "../../03_modules/ecr"
+  repository_name = "dev-ThreadsManagement-app-repo" 
+
+  untagged_image_count = 3
+}
 
 # ============================================================
 # Secrets Managerアクセス権限（インラインポリシーとして追加）
@@ -187,17 +229,7 @@ output "kakeibo_apprunner_url" {
 }
 
 
-# 家計簿アプリ用
 
-# =========================================================================
-# ECR Repository（家計簿アプリ用）
-# =========================================================================
-module "kakeibo_ecr" {
-  source          = "../../03_modules/ecr"
-  repository_name = "dev-kakeibo-app-repo"
-
-  untagged_image_count = 3
-}
 
 # =========================================================================
 # Secrets Manager（家計簿アプリ用）
