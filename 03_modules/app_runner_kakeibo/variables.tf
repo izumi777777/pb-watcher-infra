@@ -43,3 +43,10 @@ variable "environment_variables" {
   type        = map(string)
   default     = {}
 }
+
+# variables.tf に追記
+variable "runtime_environment_variables" {
+  description = "App Runner の通常の環境変数（S3バケット名など）"
+  type        = map(string)
+  default     = {}
+}

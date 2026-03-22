@@ -352,6 +352,11 @@ module "threads_app_runner" {
     PORT                           = "8080"
   }
 
+  runtime_environment_variables = {
+    S3_BUCKET_NAME = "dev-threads-media"
+    AWS_REGION     = "ap-northeast-1"
+  }
+
   environment_secrets = {
     SECRET_KEY                = "${module.threads_secrets.secret_arn}:SECRET_KEY::"
     AZURE_OPENAI_API_KEY      = "${module.threads_secrets.secret_arn}:AZURE_OPENAI_API_KEY::"
@@ -366,15 +371,14 @@ output "threads_apprunner_url" {
 }
 
 
-# =========================================================================
+## =========================================================================
 # Threads画像用 S3バケット（シンプル構成モジュールの呼び出し）
 # =========================================================================
 module "threads_media" {
-  source                       = "../../03_modules/s3"
-  bucket_name                  = "dev-threads-media-811330714771"
+  source                       = "../../03_modules/s3_simple"
+  bucket_name                  = "dev-threads-media"
   apprunner_instance_role_name = module.iam.apprunner_instance_role_name
 }
-
 
 # ------------------------------------------------------------------
 # S3 CRR用設定

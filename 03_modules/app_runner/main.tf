@@ -9,7 +9,7 @@ resource "aws_apprunner_service" "this" {
         port = "8080"
 
         runtime_environment_secrets = {
-         "AZURE_TENANT_ID"              = "${var.secret_arn}:AZURE_TENANT_ID::"
+          "AZURE_TENANT_ID"              = "${var.secret_arn}:AZURE_TENANT_ID::"
           "AZURE_CLIENT_ID"              = "${var.secret_arn}:AZURE_CLIENT_ID::"
           "AZURE_CLIENT_SECRET"          = "${var.secret_arn}:AZURE_CLIENT_SECRET::"
           "AZURE_PROJECT_ENDPOINT"       = "${var.secret_arn}:AZURE_PROJECT_ENDPOINT::"
@@ -22,7 +22,6 @@ resource "aws_apprunner_service" "this" {
           "FIREBASE_APP_ID"              = "${var.secret_arn}:FIREBASE_APP_ID::"
           "LINE_CHANNEL_ACCESS_TOKEN"    = "${var.secret_arn}:LINE_CHANNEL_ACCESS_TOKEN::"
           "APP_ID"                       = "${var.secret_arn}:APP_ID::"
-          # エラー箇所: 末尾を :: に合わせる
           "LINE_CHANNEL_SECRET"          = "${var.secret_arn}:LINE_CHANNEL_SECRET::"
         }
       }
@@ -33,11 +32,19 @@ resource "aws_apprunner_service" "this" {
     auto_deployments_enabled = true
   }
 
-  # インスタンスロールの設定を明示的に追加
   instance_configuration {
     instance_role_arn = var.instance_role_arn
     cpu               = "1024"
     memory            = "2048"
+  }
+
+  # =========================================================================
+  # lifecycle ブロックを追加
+  # =========================================================================
+  lifecycle {
+    ignore_changes = [
+      source_configuration[0].image_repository[0].image_configuration[0].runtime_environment_secrets,
+    ]
   }
 }
 

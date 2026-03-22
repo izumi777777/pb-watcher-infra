@@ -3,12 +3,12 @@
 # ============================================================================================
 
 terraform {
-  required_version = "~> 1.0" # Terraform自体のバージョンを固定（推奨）
+  required_version = "~> 1.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.0" # AWSプロバイダーのバージョンを固定（推奨）
+      version = "~> 6.0"
     }
   }
 }
@@ -18,9 +18,15 @@ provider "aws" {
   profile = "my-project"
 }
 
-# レプリケーション先リージョン (例: オレゴン)
+# レプリケーション先リージョン (一時的な架け橋として1つだけ残す)
 provider "aws" {
   alias   = "replica"
   region  = "us-west-2"
-  profile = "my-project"
+  profile = "my-project" # メインのプロバイダーと合わせるのが無難です
 }
+
+# ↓ 下記の重複していたブロックは削除しました
+# provider "aws" {
+#   alias  = "replica"
+#   region = "us-west-2"
+# }

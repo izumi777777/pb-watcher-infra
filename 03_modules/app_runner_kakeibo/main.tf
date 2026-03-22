@@ -8,8 +8,11 @@ resource "aws_apprunner_service" "this" {
       image_configuration {
         port = "8080"
 
-        # 既存モジュールとの違い: ハードコードせず変数で受け取る
+        # シークレット（Secrets Manager参照用）
         runtime_environment_secrets = var.environment_secrets
+
+        # ★追加：通常の環境変数（S3バケット名など）
+        runtime_environment_variables = var.runtime_environment_variables
       }
     }
     authentication_configuration {
@@ -22,6 +25,16 @@ resource "aws_apprunner_service" "this" {
     instance_role_arn = var.instance_role_arn
     cpu               = "1024"
     memory            = "2048"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      # シークレット情報の更新を無視（手動運用を保護）
+      source_configuration[0].image_repository[0].image_configuration[0].runtime_environment_secrets,
+      
+      # CI/CD等で外部からタグを更新している場合は、ここも有効にすると勝手に戻らなくなります
+      # source_configuration[0].image_repository[0].image_identifier
+    ]
   }
 }
 
