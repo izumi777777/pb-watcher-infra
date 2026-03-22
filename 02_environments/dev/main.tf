@@ -292,9 +292,9 @@ module "threads_secrets" {
   rotation_days       = 30
   rotation_lambda_arn = null
 
-   environment_variables = {
-    GOOGLE_APPLICATION_CREDENTIALS = "/app/services.json"
-  }
+  #  environment_variables = {
+  #   GOOGLE_APPLICATION_CREDENTIALS = "/app/services.json"
+  # }
 
   initial_secret_values = {
     SECRET_KEY               = "REPLACE_ME_WITH_RANDOM_STRING"
@@ -364,6 +364,17 @@ module "threads_app_runner" {
 output "threads_apprunner_url" {
   value = module.threads_app_runner.service_url
 }
+
+
+# =========================================================================
+# Threads画像用 S3バケット（シンプル構成モジュールの呼び出し）
+# =========================================================================
+module "threads_media" {
+  source                       = "../../03_modules/s3"
+  bucket_name                  = "dev-threads-media-811330714771"
+  apprunner_instance_role_name = module.iam.apprunner_instance_role_name
+}
+
 
 # ------------------------------------------------------------------
 # S3 CRR用設定
