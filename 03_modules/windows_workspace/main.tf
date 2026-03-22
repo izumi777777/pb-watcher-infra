@@ -56,8 +56,17 @@ resource "aws_instance" "windows_workspace" {
   }
 
   lifecycle {
-    ignore_changes = [
-      ami, # AMIが更新されても置換（再作成）しない
-    ]
+    # 変更を無視したい属性を指定します
+    # 全ての変更を無視したい場合は all を指定
+    ignore_changes = all
+    
+    # 特定の項目（例：AMIやタグなど）だけ固定したい場合はリストで指定
+    # ignore_changes = [
+    #   ami,
+    #   user_data,
+    #   instance_type,
+    #   tags,
+    # ]
   }
+
 }
